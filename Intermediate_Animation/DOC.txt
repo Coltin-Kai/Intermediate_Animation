@@ -1,0 +1,33 @@
+MORPHING DATA STRUCTURES
+
+aiMesh:
+	unsigned int mMethod - Tells the method of morphing when animMeshes are specified via enum aiMorphingMethod 
+	aiAnimMesh* mAnimMeshes[] - attachment meshes for the specific mesh for vertex based animation.
+	unsigned int mNumAnimMeshes
+
+aiAnimMesh:
+DESC: An attachment to an aiMesh and stores per-vertex animations for a particular frame
+The relationship between the Time line and animMesh is established by aiMeshAnim.
+	aiVector3D mVertices[] - Replacement for aiMesh's mVertices
+	unsigned int mNumVertices
+	float mWeight - Weight of the AnimMesh
+
+aiAnimation:
+	aiMeshAnim* mMeshChannels[] - The Mesh Animation Channels. Each affects a single mesh
+	unsigned int mNumMeshChannels
+
+aiMeshAnim:
+DESC: Describes Vertex-based animation for a single mesh or a group of meshes. Meshes carry the animation data for each frame in
+their aiMesh::mAnimMeshes array. The purpose of aiMeshAnim is to define keyframes
+linking each mesh attachment to a particular point in time.
+	aiString mName - Name of the mesh to be animated
+	unsigned int mNumKeys
+	aiMeshKey mKeys[] - Keyframes of the animation.
+
+aiMeshKey:
+DESC: Binds an animMesh to a specific point in time.
+	double mTime - The time of this key
+	unsigned int mValue - Index into the aiMesh::mAnimMeshes array of the mesh corresponding to the aiMeshAnim hosting this key
+						  frame. AKA the connection
+
+	
