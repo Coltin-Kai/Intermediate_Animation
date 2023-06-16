@@ -102,6 +102,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) { //Transfers Assimp
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        std::vector<Texture> opacityMaps = loadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity");
+        textures.insert(textures.end(), opacityMaps.begin(), opacityMaps.end());
     }
     extractBoneWeightForVertices(vertices, mesh, scene); //Extract Bone associated information from Assimp's Scene and Mesh to vertices
     return Mesh(vertices, indices, textures);
@@ -115,7 +117,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         mat->GetTexture(type, i, &str);
         bool skip = false;
         for (unsigned int j = 0; j < textures_loaded.size(); j++) {
-            if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) { //Compare current texture's path to those already loaded. If there is an equal comparison, then the texture was already loaded. So indicate to skip
+            if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0 && textures_loaded[j].type == typeName) { //Compare current texture's path to those already loaded. If there is an equal comparison, then the texture was already loaded. So indicate to skip
                 textures.push_back(textures_loaded[j]);
                 skip = true;
                 break;

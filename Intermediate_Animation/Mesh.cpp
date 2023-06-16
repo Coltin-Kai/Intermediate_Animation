@@ -7,6 +7,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 void Mesh::Draw(Shader& shader) {
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
+	unsigned int opacityNr = 1;
 	for ( unsigned int i = 0; i < textures.size(); i++ ) { //Assigns each texture to the correct texture unit and uniform sampler
 		glActiveTexture(GL_TEXTURE0 + i);
 		std::string number;
@@ -15,6 +16,8 @@ void Mesh::Draw(Shader& shader) {
 			number = std::to_string(diffuseNr++);
 		else if (name == "texture_specular")
 			number = std::to_string(specularNr++);
+		else if (name == "texture_opacity")
+			number = std::to_string(opacityNr++);
 		shader.setInt(("material." + name + number).c_str(), i); 
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
