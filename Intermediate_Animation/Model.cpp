@@ -20,6 +20,9 @@ void Model::loadModel(std::string path) {
         std::cout << "ERROR::ASSIMP::Model::" << import.GetErrorString() << std::endl;
         return;
     }
+
+    std::cout << "Num of Materials: " << +scene->mNumMaterials << std::endl; //*
+
     directory = path.substr(0, path.find_last_of('\\'));
     processNode(scene->mRootNode, scene);
 }
@@ -38,7 +41,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) { //Transfers Assimp
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
-
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
         setVertexBoneDataToDefault(vertex); //FIll m_BoneIDs and m_Weights of the Vertex with default values
@@ -73,6 +75,29 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) { //Transfers Assimp
     //Material
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+        std::cout << "Material " << material->GetName().C_Str() << std::endl; //*
+        std::cout << "  TextureCount" << std::endl;
+        std::cout << "  DiffuseTextures: " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
+        std::cout << "  SpecularTextures: " << material->GetTextureCount(aiTextureType_SPECULAR) << std::endl;
+        std::cout << "  AmbientTextures: " << material->GetTextureCount(aiTextureType_AMBIENT) << std::endl;
+        std::cout << "  EmissiveTextures: " << material->GetTextureCount(aiTextureType_EMISSIVE) << std::endl;
+        std::cout << "  HeightTextures: " << material->GetTextureCount(aiTextureType_HEIGHT) << std::endl;
+        std::cout << "  NormalTextures: " << material->GetTextureCount(aiTextureType_NORMALS) << std::endl;
+        std::cout << "  ShininessTextures: " << material->GetTextureCount(aiTextureType_SHININESS) << std::endl;
+        std::cout << "  OpacityTextures:  " << material->GetTextureCount(aiTextureType_OPACITY) << std::endl;
+        std::cout << "  DisplacementTextures: " << material->GetTextureCount(aiTextureType_DISPLACEMENT) << std::endl;
+        std::cout << "  LightMapTextures: " << material->GetTextureCount(aiTextureType_LIGHTMAP) << std::endl;
+        std::cout << "  ReflectionTextures: " << material->GetTextureCount(aiTextureType_REFLECTION) << std::endl;
+        std::cout << "  PBR Materials\n  BaseColorTextures: " << material->GetTextureCount(aiTextureType_BASE_COLOR) << std::endl;
+        std::cout << "  NormalCameraTextures: " << material->GetTextureCount(aiTextureType_NORMAL_CAMERA) << std::endl;
+        std::cout << "  EmissionColorTextures: " << material->GetTextureCount(aiTextureType_EMISSION_COLOR) << std::endl;
+        std::cout << "  MetalnessTextures: " << material->GetTextureCount(aiTextureType_METALNESS) << std::endl;
+        std::cout << "  DiffuseRoughnessTextures: " << material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) << std::endl;
+        std::cout << "  AmbientOcclusionTextures: " << material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) << std::endl;
+        std::cout << "  UnknownTexutes: " << material->GetTextureCount(aiTextureType_UNKNOWN) << std::endl;
+
+
         std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
@@ -97,6 +122,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
             }
         }
         if (!skip) {   // if texture hasn't been loaded already, load it
+            std::cout << "  Got " << typeName << ": " << str.C_Str() << std::endl; //*
             Texture texture;
             texture.id = TextureFromFile(str.C_Str(), directory); 
             texture.type = typeName;
