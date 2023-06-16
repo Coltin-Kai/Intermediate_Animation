@@ -1,4 +1,4 @@
-MORPHING DATA STRUCTURES
+*POSSIBLE* MORPHING DATA STRUCTURES
 
 aiMesh:
 	unsigned int mMethod - Tells the method of morphing when animMeshes are specified via enum aiMorphingMethod 
@@ -10,11 +10,14 @@ DESC: An attachment to an aiMesh and stores per-vertex animations for a particul
 The relationship between the Time line and animMesh is established by aiMeshAnim.
 	aiVector3D mVertices[] - Replacement for aiMesh's mVertices
 	unsigned int mNumVertices
-	float mWeight - Weight of the AnimMesh
+	float mWeight - Weight of the AnimMesh. The initial value of the animMesh when the model is loaded in. Like when you load a model with shape keys,
+					the shape keys will probably be initialized with whatever is in their associated mWeight.				
 
 aiAnimation:
 	aiMeshAnim* mMeshChannels[] - The Mesh Animation Channels. Each affects a single mesh
 	unsigned int mNumMeshChannels
+	aiMeshMorphAnim* mMorphMeshChannels[] - The morph mesh animation channels
+	unsigned int mNumMorphMeshChannels
 
 aiMeshAnim:
 DESC: Describes Vertex-based animation for a single mesh or a group of meshes. Meshes carry the animation data for each frame in
@@ -30,4 +33,21 @@ DESC: Binds an animMesh to a specific point in time.
 	unsigned int mValue - Index into the aiMesh::mAnimMeshes array of the mesh corresponding to the aiMeshAnim hosting this key
 						  frame. AKA the connection
 
+aiMeshMorphAnim:
+DESC: Describes a morphing animation of a given mesh
+	aiString mName - Name of the mesh to be animated
+	unsigned int mNumKeys
+	aiMeshMorphKey mKeys[] - Keyframes of the animation
+
+aiMeshMorphKey:
+DESC: Binds a morph animMesh to a specific point in time
+	double mTime
+	unsigned int mValues[] - The values at the time of this key. Perhaps index into mAnimMeshes of the correspond Mesh?
+	double mWeights[] - The weights at the time of this key
+	unsigned int mNumValuesAndWeights
 	
+Seems like I want to be using aiMeshMorphAnim and aiMeshMorphKey instead of aiMeshAnim and aiMeshKey, as latter seems more for just vertex transformation.
+
+May have to use Collada file formats
+
+May use FBX as it supports Morph animation

@@ -43,6 +43,40 @@ int main() {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glEnable(GL_DEPTH_TEST);
+
+	Shader shader(".\\shaders\\general.vert", ".\\shaders\\general.frag");
+	Model theModel(".\\model\\custom_kamome.fbx");
+	Animation theAnimation(".\\model\\custom_kamome.fbx", &theModel); //Can do this as animation is also stored inthe dae file
+	Animator animator(&theAnimation);
+
+	shader.use();
+	while (!glfwWindowShouldClose(window)) {
+		float currentFrame = static_cast<float>(glfwGetTime());
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		processInput(window);
+		animator.updateAnimation(deltaTime);
+
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 view = camera.getViewMatrix();
+		shader.setMatrix4Float("projection", projection);
+		shader.setMatrix4Float("view", view);
+		std::vector<glm::mat4> transforms = animator.getFinalBoneMatrices();
+		for (int i = 0; i < transforms.size(); i++)
+			shader.setMatrix4Float("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+		shader.setMatrix4Float("model", model);
+		theModel.Draw(shader);
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
 	return 0;
 }
 

@@ -3,8 +3,8 @@
 Animator::Animator(Animation* animation) { //Initlize the Animator with a loaded animation
     m_CurrentTime = 0.0f; 
     m_CurrentAnimation = animation;
-    m_FinalBoneMatrices.reserve(100);
-    for (int i = 0; i < 100; i++)
+    m_FinalBoneMatrices.reserve(200);
+    for (int i = 0; i < 200; i++)
         m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
 }
 

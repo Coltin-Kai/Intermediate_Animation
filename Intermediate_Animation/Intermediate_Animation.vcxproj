@@ -154,6 +154,14 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\general.frag" />
+    <None Include="shaders\general.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Animation_DOC.txt" />
+    <Text Include="DOC.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

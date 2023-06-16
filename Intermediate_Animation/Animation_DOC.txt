@@ -1,0 +1,155 @@
+ASSIMP (Only the relevent pieces for Animation)
+
+aiScene: 
+desc - root structure of our data
+	aiNode* mRootNode - Root node of the node hierarchy
+	aiAnimation* mAnimations[] - Array of animations
+	aiMesh* mMeshes[] - Array of meshes
+
+aiNode:
+desc - named entities in a scene and can form a hierarchy where a child is relative in position and orientation to a parent. Note
+that a node can refer to several things: 0..x meshes, a bone of a mesh, or it can be animated by a key sequence of animation.
+Using bone names, you can find the corresponding node in the node hierarchy and vice versa. A bone node in relation to other bone
+nodes defines the skeleton of the mesh/bone hierarcy. However, there are maybe nodes not used by a bone in a mesh, but still 
+affect the pose of the skeleton because they have child nodes which are bones. Still need these nodes to keep the transformation
+chain intact.
+	aiString mName - Name of the node
+	aiMatrix4x4 mTransformation - Transformation relative to the node's parent
+	aiNode* mParent - the parent node
+	aiNode* mChildren[] - child nodes of this node
+
+aiAnimation:
+desc - consists of keygrame data for a number of nodes
+	double mDuration - duration of the whole animation
+	double mTicksPerSecond - used to control how fast our program interpolate between frames
+	aiNodeAnim mChannels[] - array of channels/aiNodeAnims
+
+aiNodeAnim:
+desc - describes the animation of a single bone/node. Note that the transformation matrix computed from the values at a certain
+keyframe replaces the node's original transformation at a specific time. Meaning all keys are absolute and NOT relative to the 
+bone's default pose.
+	aiString mNodeName - name of the node affected by this animation
+	aiVectorKey mPositionKeys[] - position keyframes
+	aiQuatKey mRotationKeys[] - rotation keyframes
+	aiVectorKey mScalingKeys[] - scaling keyframes
+
+aiMesh:
+desc - represents a geomotry of a model
+	aiBone* mBones[] - array of bones that relate to this mesh
+	aiVector3D mVertices[] - vertex positions
+
+aiBone:
+desc - a single bone of a mesh. The name of this bone is identitcal to its node counterpart in the node hierarchy.
+	aiString mName - name of the bone
+	aiVertexWeight mWeights[] - the vertices affected by the bone and their weights
+	aiMatrix4x4 mOffsetMatrix - matrix that transforms from Mesh Space to Bone Space of the bone
+
+aiVertexWeight
+desc - a single influence of a bone on a vertex
+	unsigned int mVertexId - the index of the vertex (aka aiMesh.mVertices[_]) which is influced by the bone
+	float mWeight - strength of the influence on the vertex from 0...1
+	
+----------------------------------------------------------------------------------------------------------------------------
+THE PROGRAM - DATA EXTRACTION (Only relevent data to animation listed)
+
+Mesh:
+	structs - Vertex : int m_BoneIDs[] - Model.m_BoneCounter = 0, 1, 2, ...
+					   float m_Weights[] - aiMesh->mBones[]->mWeights[].mWeight
+
+	variables - vector<Vertex> vertices
+
+	involves - [no Assimp objects]
+
+Model:
+	structs - BoneInfo : int id 
+						 glm::mat4 offset
+
+	variables - unordered_map<string, BoneInfo> m_BoneInfoMap
+				int m_BoneCounter
+
+	Involves - aiNode, aiMesh, aiBone, aiVertexWeights
+
+Bone:
+	structs - KeyPosition, KeyRotation, KeyScale : type value
+												   float timeStamp
+	variables - vector<KeyPosition> m_Positions
+				vector<KeyRotation> m_Rotations
+				vector<KeyScale> m_Scales
+				int m_NumPositions
+				int m_NumRotations
+				int m_NumScalings
+				glm::mat4 m_LocalTransform
+				string m_name
+				m_ID
+
+	Involves - aiNodeAnim
+
+Animation:
+	structs - AssiimpNodeData : glm::mat4 transformation
+								string name
+								int childrenCount
+								vector<AssimpNodeData> children
+	
+	variables - int m_TicksPerSecond
+				vector<Bone> m_Bones
+				AssimpNodeData m_RootNode
+				unordered_map<string, BoneInfo> m_BoneInfoMap
+
+	Involves - aiAnimation, aiNodeAnim, aiNode
+
+Animator:
+	structs - [None]
+
+	variables - vector<glm::mat4> m_FinalBoneMatrices
+	
+	Involves - [no Assimp Objects]
+
+GENERAL TRANSFORMATION
+	SHADER::totalPosition - The final result of the vertex position that will be transformed with normal Space transformations.
+							It's the accumulation of all the bone transformations adjusted by their weights.
+	SHADER::localPosition - represents a single bone transformation. Result of applying the finalBoneMatrices of one bone
+							to the original vertex position.
+	finalBonesMatrices[_] - An array containing every transformation concerning every bone. A finalBoneMatrix is the result
+							of combining offsetMatrix then the globalTransformation. Effectively the transformation that moves
+							vertices from Bind Pose/Original position to their Keyframed Interpolated location.
+	offsetMatrix - Every bone has this. Best described as the "Inverse of the Bone's Global Transform AT Bind Pose", where Bind
+				   Pose means the Rest Pose or the pose where the Mesh isn't deformed or changed by the Bone. Best thought of as
+				   "The Transformation from Mesh/Model Space to Bone Space".
+	globalTransformation - Best understood as the "Transformation from Bone to Mesh/Model Space". It is basically the accumulation
+						   of all the keyframe interpolated local transformations starting from the root node and all the way down 
+						   the chain to the certain bone/node. Aka, it is the global transformation of a bone AT some target location. 
+						   Basically takes our vertices in Bone Space and transform them according to he parent node relative 
+						   transformas and the keyframed interpolated transform of the bone, all the way back to Model Space. Gained 
+						   from composite of parentTransforms and nodeTransform
+	parentTransform - Looking at it from the POV of a bone, it is the accumulation of the keyframe interpolated transformations
+					  of its parent, their parent, etc. As said, a bone node that is a child of a parent node (which can be a
+					  bone or not) is influenced by their parent's transformation. This fits into both the Skeleton structure and
+					  Model Node structure.
+	nodeTransform - Can be two things depending on if the node is a bone or not for our program. If it isn't a bone, then it is a simple
+					transformation found in the node. If it is, then it is the local transformation of the bone that is calculated 
+					from keyframe interpolation. This IS the actual transform the bone would experience in an animation.
+	
+	So Basically:
+	gl_Position = projection * view * model * totalPosition
+	totalPosition = SUM(localPosition[i] * weights[i]) where i = 0 to Number of Bones Influencing the Vertice
+	localPosition[i] = finalBonesMatrices[boneIds[i]] * vec4(pos,1.0f) where pos is the original vertice position
+	finalBoneMatrix (Of One Bone) = globalTransformation * offsetMatrix
+	globalTransformation = parentTransform * nodeTransform
+	parentTransform = parentTransform * nodeTransform
+	nodeTransform = Interplated( T * R * S )
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Other Notes
+
+Collada (dae) files and FBX files work well with this simple program.
+
+When using Blender, can simply set up keyframes on the timeline and export the file, preferably as FBX, with baked Animations checked. Can
+then simply use the file for both setting up the model and animation.
+
+NOTE: On terminology. A keyframe represents one transformation on one object (bone) at a certain time. Each bone have their own individual
+set of keyframes that are used to interpolate and transform the bone. A channel refers to the set of keyframes belonging to a bone. Thus
+each bone has a channel containing their keyframes in a animation.
+
+Since Blender turns Bezier Interpolated In-between of Keyframes into a bunch of Linear Interpolated keyframes in-betwen, don't have
+to worry about animation exported from Blender to not work on our basic Animation player. But I have only seen this with FBX file. And
+reimporting these Blender exported files into Blender will now show the mess of Linear Interp. Keyframes.
