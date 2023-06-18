@@ -53,5 +53,3 @@ May have to use Collada file formats
 May use FBX as it supports Morph animation
 
 In order for Textures to be able to be referenced by FBX, Blender dictates that nodes must use the PBR or whatever shader node.
-
-NEXT OBJECTIVE: Add opacity feature in order eyes and eyebrows to render correctly

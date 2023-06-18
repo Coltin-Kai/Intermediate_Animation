@@ -44,7 +44,7 @@ int main() {
 
 	glEnable(GL_DEPTH_TEST);
 
-	//For Alpha Testing. Look into alhpa test and/or hybrid strat
+	//For Alpha Testing. Maybe look into alhpa test and/or hybrid strat
 
 	Shader shader(".\\shaders\\general.vert", ".\\shaders\\general.frag");
 	Model theModel(".\\model\\custom_kamome.fbx");
