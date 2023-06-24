@@ -56,11 +56,14 @@ void Mesh::setupMesh() { //Simply set up the associated Vertex Arrays and Buffer
 	Using std430 layout, similiar to std140 but some optimizations and change in alignment and strides for arrays and structs of scalars and vector elements (except vec3). Basically they are no longer rounded up to a muliple
 	of 16 bytes (that matching of a vec4). So array of floats will match with a C++ array of floats. This layout is only usable with SSBOs. Not UBOs.
 	Component | Base Alignment | Offset | Alligned Offset
-	int numShapes
-	float weights[]
-	vec4 positions[][]
+	float weights[] 4 | 0 | 0
+	vec4 positions[][] 16 | 4*weghts.length | 4*weights.length and whatever makes it to multiple of 16
 	*/
-
+	unsigned int delta_16 = (4 * shapes.size()) % 16;
+	unsigned int positions_alligned_offset = (delta_16 == 16) ? 4 * shapes.size() : 4 * shapes.size() + (16 - delta_16);
+	unsigned int ssb_size = positions_alligned_offset + (shapes.size() * shapes[0].positions.size());
 	glGenBuffers(1, &SSBO_shapes);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO_shapes);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, ssb_size, NULL, GL_DYNAMIC_DRAW);
+	
 }
