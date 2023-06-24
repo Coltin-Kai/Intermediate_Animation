@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures) : vertices(vertices), indices(indices), textures(textures) {
+Mesh::Mesh(std::string name, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, std::vector<Shape> shapes) : name(name), vertices(vertices), indices(indices), textures(textures), shapes(shapes) {
 	setupMesh();
 }
 
@@ -49,4 +49,18 @@ void Mesh::setupMesh() { //Simply set up the associated Vertex Arrays and Buffer
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
 	glBindVertexArray(0);
+
+	//Morph Stuff
+
+	/*
+	Using std430 layout, similiar to std140 but some optimizations and change in alignment and strides for arrays and structs of scalars and vector elements (except vec3). Basically they are no longer rounded up to a muliple
+	of 16 bytes (that matching of a vec4). So array of floats will match with a C++ array of floats. This layout is only usable with SSBOs. Not UBOs.
+	Component | Base Alignment | Offset | Alligned Offset
+	int numShapes
+	float weights[]
+	vec4 positions[][]
+	*/
+
+	glGenBuffers(1, &SSBO_shapes);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO_shapes);
 }

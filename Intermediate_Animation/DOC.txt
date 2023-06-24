@@ -42,8 +42,8 @@ DESC: Describes a morphing animation of a given mesh
 aiMeshMorphKey:
 DESC: Binds a morph animMesh to a specific point in time
 	double mTime
-	unsigned int mValues[] - The values at the time of this key. Perhaps index into mAnimMeshes of the correspond Mesh?
-	double mWeights[] - The weights at the time of this key
+	unsigned int mValues[] - The values at the time of this key. Perhaps each index into a specific mAnimMeshes of the corresponding Mesh?
+	double mWeights[] - The weights of each shapeKey at the time of this key
 	unsigned int mNumValuesAndWeights
 	
 Seems like I want to be using aiMeshMorphAnim and aiMeshMorphKey instead of aiMeshAnim and aiMeshKey, as latter seems more for just vertex transformation.
@@ -53,3 +53,7 @@ May have to use Collada file formats
 May use FBX as it supports Morph animation
 
 In order for Textures to be able to be referenced by FBX, Blender dictates that nodes must use the PBR or whatever shader node.
+
+Since there is a max number of vertex attribs, may have to rely on sending patch information as a texture
+
+Since aiMeshMorphAnim.mName is kind of broken, have to remove * and anything after it of the string. Can refer to multiple meshes as shares name.

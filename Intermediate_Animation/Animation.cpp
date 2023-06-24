@@ -8,6 +8,9 @@ Animation::Animation(std::string animationPath, Model* model) { //Takes animatio
     }
     assert(scene && scene->mRootNode);
     aiAnimation* animation = scene->mAnimations[0]; //Note that it only takes in one animation from the file (the first one present in the list of animations).
+
+    std::cout << "Morph Mesh: " << animation->mMorphMeshChannels[0]->mName.C_Str() << std::endl;
+
     m_Duraction = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;
     readHeirarchyData(m_RootNode, scene->mRootNode);

@@ -32,6 +32,7 @@ bone's default pose.
 	aiVectorKey mPositionKeys[] - position keyframes
 	aiQuatKey mRotationKeys[] - rotation keyframes
 	aiVectorKey mScalingKeys[] - scaling keyframes
+Note: keyframe structs hold their ime and value.
 
 aiMesh:
 desc - represents a geomotry of a model

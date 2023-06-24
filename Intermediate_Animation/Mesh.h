@@ -23,16 +23,23 @@ struct Texture {
 	std::string path;
 };
 
+struct Shape {
+	std::vector<glm::vec4> positions;
+	float weight;
+};
+
 class Mesh {
 public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
+	std::string name;
+	std::vector<Shape> shapes;
 
-	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+	Mesh(std::string name, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, std::vector<Shape> shapes);
 	void Draw(Shader& shader);
 private:
-	unsigned int VAO, VBO, EBO;
+	unsigned int VAO, VBO, EBO, SSBO_shapes;
 	void setupMesh();
 };
 
