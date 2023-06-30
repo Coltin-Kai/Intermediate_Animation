@@ -1,0 +1,5 @@
+custom_kamome starts off at a neutral pose
+
+custom_kamome2 starts with one shape initially full weighted
+
+Screw it. Use gltf format.

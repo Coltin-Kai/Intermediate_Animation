@@ -47,8 +47,8 @@ int main() {
 	//For Alpha Testing. Maybe look into alhpa test and/or hybrid strat
 
 	Shader shader(".\\shaders\\general.vert", ".\\shaders\\general.frag");
-	Model theModel(".\\model\\custom_kamome.fbx");
-	Animation theAnimation(".\\model\\custom_kamome.fbx", &theModel); //Can do this as animation is also stored inthe dae file
+	Model theModel(".\\model\\custom_kamome.glb");
+	Animation theAnimation(".\\model\\custom_kamome.glb", &theModel); //Can do this as animation is also stored inthe dae file
 	Animator animator(&theAnimation);
 
 	shader.use();

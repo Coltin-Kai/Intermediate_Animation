@@ -15,7 +15,7 @@ void Model::Draw(Shader& shader) {
 
 void Model::loadModel(std::string path) {
     Assimp::Importer import;
-    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs); //Get Scene from object file
+    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiPostProcessSteps::aiProcess_EmbedTextures); //Get Scene from object file
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP::Model::" << import.GetErrorString() << std::endl;
         return;
@@ -41,8 +41,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) { //Transfers Assimp
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
     std::vector<Shape> shapes;
-
-    std::cout << mesh->mName.C_Str() << std::endl;
 
     vertices.reserve(mesh->mNumVertices);
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
@@ -108,12 +106,15 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) { //Transfers Assimp
     }
     //Bones
     extractBoneWeightForVertices(vertices, mesh, scene); //Extract Bone associated information from Assimp's Scene and Mesh to vertices
-   
+
     return Mesh(mesh->mName.C_Str(), vertices, indices, textures, shapes);
 }
 
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {
     std::vector<Texture> textures;
+    
+    std::cout << "Material: " << mat->GetName().C_Str() << std::endl;
+
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
         aiString str;

@@ -4,12 +4,18 @@ Animation::Animation(std::string animationPath, Model* model) { //Takes animatio
     Assimp::Importer importer; //Uses Importer to read the animation file and contain its contents in a Scene object
     const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
     if (scene == NULL) {
-        std::cout << "Scene points to nothing" << std::endl;
+        std::cout << "ANIMATION::Scene points to nothing" << std::endl;
     }
     assert(scene && scene->mRootNode);
     aiAnimation* animation = scene->mAnimations[0]; //Note that it only takes in one animation from the file (the first one present in the list of animations).
 
     std::cout << "Morph Mesh: " << animation->mMorphMeshChannels[0]->mName.C_Str() << std::endl;
+
+    std::cout << "Weights of Joy: " << std::endl;
+    
+    for (int i = 0; i < animation->mMorphMeshChannels[0]->mNumKeys; i++) {
+        std::cout << +animation->mMorphMeshChannels[0]->mKeys[i].mWeights[2] << std::endl;
+    }
 
     m_Duraction = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;

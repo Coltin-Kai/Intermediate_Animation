@@ -25,6 +25,14 @@ out vec2 TexCoords;
 	
 void main()
 {
+    //Morph 
+    vec3 morph_displacements = vec3(0.0);
+    for (int i = 0; i < morphBuffer.numShapes; i++) {
+        morph_displacements += weights[i] * (morphBuffer.positions[gl_VertexID][i].xyz - pos);
+    }
+    vec3 morph_position = pos + morph_displacements;
+
+    //Skeleton        
     vec4 totalPosition = vec4(0.0f);
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
