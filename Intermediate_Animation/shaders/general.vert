@@ -40,10 +40,10 @@ void main()
             continue;
         if(boneIds[i] >= MAX_BONES) //If value exceed max, just use the normal vertice posiion and break out loop
         {
-            totalPosition = vec4(pos,1.0f);
+            totalPosition = vec4(morph_position,1.0f);
             break;
         }
-        vec4 localPosition = finalBonesMatrices[boneIds[i]] * vec4(pos,1.0f);
+        vec4 localPosition = finalBonesMatrices[boneIds[i]] * vec4(morph_position, 1.0f);
         totalPosition += localPosition * weights[i];
     }
 	//totalPosition at this point should have the final result of all transformations caused by the bones incluencing the vertice

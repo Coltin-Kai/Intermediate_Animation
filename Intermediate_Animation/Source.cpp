@@ -71,8 +71,6 @@ int main() {
 		for (int i = 0; i < transforms.size(); i++)
 			shader.setMatrix4Float("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 		shader.setMatrix4Float("model", model);
 		theModel.Draw(shader);
 

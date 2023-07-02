@@ -62,37 +62,38 @@ void Mesh::setupMesh() { //Simply set up the associated Vertex Arrays and Buffer
 	Component | Base Alignment | Offset | Alligned Offset
 	int numShapes 4 | 0 | 0
 	float weights[MAX_SHAPES] 4 | 4 | 4
-	vec4 positions[][MAX_SHAPES] 16 | 4*weghts.length | 4*weights.length and whatever makes it to multiple of 16
+	vec4 positions[][MAX_SHAPES] 16 | 4 + 4*weghts.length | 4 + 4*weights.length and whatever makes it to multiple of 16
 	*/
 	const unsigned int MAX_SHAPES = 50;
 	unsigned int numShapes = shapes.size();
 	unsigned int delta_16 = (4 + (4 * MAX_SHAPES)) % 16;
 	unsigned int positions_alligned_offset = (delta_16 == 0) ? (4 + (4 * MAX_SHAPES)) : (4 + (4 * MAX_SHAPES)) + (16 - delta_16);
-	unsigned int ssb_size = positions_alligned_offset + (MAX_SHAPES * shapes[0].positions.size());
+	unsigned int ssb_size = positions_alligned_offset + (16 * MAX_SHAPES * shapes[0].positions.size());
 	assert(numShapes < MAX_SHAPES);
 	std::vector<float> weights_temp;
-	weights_temp.reserve(numShapes);
+	weights_temp.reserve(MAX_SHAPES);
 	for (int i = 0; i < MAX_SHAPES; i++) {
 		if (i < numShapes)
 			weights_temp.push_back(shapes[i].weight);
 		else
 			weights_temp.push_back(-1.0f); //Leftover space filled with empty data
 	}
+	auto positions_temp = new glm::vec4[shapes[0].positions.size()][MAX_SHAPES]; //Represents a contiguous memory of positions, where a row represents the same vertex in each shape, and column are all the different vertices.
+	for (int i = 0; i < shapes[0].positions.size(); i++) {
+		for (int j = 0; j < MAX_SHAPES; j++) {
+			if (j < numShapes)
+				positions_temp[i][j] = shapes[j].positions[i];
+			else
+				break;
+		}
+	}
 	glGenBuffers(1, &SSBO_shapes);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO_shapes);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, ssb_size, NULL, GL_DYNAMIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 4, &numShapes);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 4, sizeof(weights_temp.data()), weights_temp.data());
-	std::vector<glm::vec4> positions_temp; //Represents a contiguous memory of positions, where a row represents the same vertex in each shape, and column are all the different vertices.
-	positions_temp.reserve(shapes[0].positions.size() * numShapes);
-	for (int i = 0; i < shapes[0].positions.size(); i++) {
-		for (int j = 0; j < MAX_SHAPES; j++) {
-			if (j < numShapes)
-				positions_temp.push_back(shapes[j].positions[i]);
-			else
-				positions_temp.push_back(glm::vec4(-1.0f)); //Leftover spaces filled with empty data
-		}
-	}
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, positions_alligned_offset, sizeof(positions_temp), positions_temp.data());
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 4, 4 * weights_temp.size(), weights_temp.data());
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, positions_alligned_offset, 16 * shapes[0].positions.size() * MAX_SHAPES, positions_temp);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+	delete[] positions_temp;
 }
