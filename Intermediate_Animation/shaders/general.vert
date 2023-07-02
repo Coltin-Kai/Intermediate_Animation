@@ -4,7 +4,7 @@ layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 norm;
 layout(location = 2) in vec2 tex;
 layout(location = 3) in ivec4 boneIds;
-layout(location = 4) in vec4 weights;
+layout(location = 4) in vec4 bone_weights;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -28,7 +28,7 @@ void main()
     //Morph 
     vec3 morph_displacements = vec3(0.0);
     for (int i = 0; i < morphBuffer.numShapes; i++) {
-        morph_displacements += weights[i] * (morphBuffer.positions[gl_VertexID][i].xyz - pos);
+        morph_displacements += morphBuffer.weights[i] * (morphBuffer.positions[gl_VertexID][i].xyz - pos);
     }
     vec3 morph_position = pos + morph_displacements;
 
@@ -44,7 +44,7 @@ void main()
             break;
         }
         vec4 localPosition = finalBonesMatrices[boneIds[i]] * vec4(morph_position, 1.0f);
-        totalPosition += localPosition * weights[i];
+        totalPosition += localPosition * bone_weights[i];
     }
 	//totalPosition at this point should have the final result of all transformations caused by the bones incluencing the vertice
     mat4 viewModel = view * model;
