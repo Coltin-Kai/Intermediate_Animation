@@ -2,6 +2,7 @@
 #include "stb_image.h"
 
 static unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
+static unsigned int getEmbeddedTexture(const char* path, const aiScene* scene);
 
 Model::Model(const char* path) {
     loadModel(path);
@@ -78,11 +79,11 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) { //Transfers Assimp
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", scene);
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", scene);
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-        std::vector<Texture> opacityMaps = loadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity");
+        std::vector<Texture> opacityMaps = loadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity", scene);
         textures.insert(textures.end(), opacityMaps.begin(), opacityMaps.end());
     }
     //Morph/Shape Keys
@@ -110,7 +111,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) { //Transfers Assimp
     return Mesh(mesh->mName.C_Str(), vertices, indices, textures, shapes);
 }
 
-std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {
+std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const aiScene* scene) {
     std::vector<Texture> textures;
     
     std::cout << "Material: " << mat->GetName().C_Str() << std::endl;
@@ -129,7 +130,13 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         }
         if (!skip) {   // if texture hasn't been loaded already, load it
             Texture texture;
-            texture.id = TextureFromFile(str.C_Str(), directory); 
+            if (str.C_Str()[0] == '*') {
+                std::cout << "Is Embedded" << std::endl;
+                texture.id = getEmbeddedTexture(str.C_Str(), scene);
+            }
+            else {
+                texture.id = TextureFromFile(str.C_Str(), directory);
+            } 
             texture.type = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);
@@ -228,6 +235,47 @@ static unsigned int TextureFromFile(const char* path, const std::string& directo
     else {
         std::cout << "Texture failed to load at path: " << path << std::endl;
         stbi_image_free(data);
+    }
+    return textureID;
+}
+
+unsigned int getEmbeddedTexture(const char* path, const aiScene* scene) {
+    const aiTexture* embedded_Texture = scene->GetEmbeddedTexture(path);
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    if (embedded_Texture->mHeight != 0) { //Not Compressed
+        std::cout << "Embedded Texture isn't Compressed" << std::endl;
+        std::cout << "Embedded Texture Packing Format: " << embedded_Texture->achFormatHint << std::endl;
+        //WIP when Neccesart
+    }
+    else { //Compressed
+        std::cout << "Embedded Texture is Compressed" << std::endl;
+        int width, height, nrComponents;
+        unsigned char* data = stbi_load_from_memory((const unsigned char*)embedded_Texture->pcData, embedded_Texture->mWidth, &width, &height, &nrComponents, 0);
+        if (data) {
+            GLenum format;
+            if (nrComponents == 1)
+                format = GL_RED;
+            else if (nrComponents == 3)
+                format = GL_RGB;
+            else if (nrComponents == 4)
+                format = GL_RGBA;
+
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            stbi_image_free(data);
+        }
+        else {
+            std::cout << "Embedded Texture failed to load for: " << embedded_Texture->mFilename.C_Str() << std::endl;
+            stbi_image_free(data);
+        }
     }
     return textureID;
 }
