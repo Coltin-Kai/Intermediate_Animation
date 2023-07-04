@@ -48,6 +48,7 @@ DESC: Binds a morph animMesh to a specific point in time
 	
 Seems like I want to be using aiMeshMorphAnim and aiMeshMorphKey instead of aiMeshAnim and aiMeshKey, as latter seems more for just vertex transformation.
 
+DEPCRECATED INFO - 
 May have to use Collada file formats
 
 May use FBX as it supports Morph animation

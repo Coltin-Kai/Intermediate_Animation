@@ -13,6 +13,7 @@ void Animator::updateAnimation(float deltaTime) { //Updates the animation time b
         m_CurrentTime += m_CurrentAnimation->getTicksPerSecond() * deltaTime; //Calculates the new current time by adding span of time of the deltaTime adjusted by ticksPerSecond
         m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->getDuration()); //Modulo it with the total durection of the animation as currentTime will eventually go above the duration time, so we want the currentTime to reset to cause an animation repeat.
         calculateBoneTransformation(&m_CurrentAnimation->getRootNode(), glm::mat4(1.0f));
+        setNewMorphWeights();
     }
 }
 
@@ -47,4 +48,11 @@ void Animator::calculateBoneTransformation(const AssimpNodeData* node, const glm
 
 std::vector<glm::mat4> Animator::getFinalBoneMatrices() {
     return m_FinalBoneMatrices;
+}
+
+void Animator::setNewMorphWeights() {
+    std::vector<MorphAnim>& morphAnims = m_CurrentAnimation->getMorphAnims();
+    for (int i = 0; i < morphAnims.size(); i++) {
+        morphAnims[i].Update(m_CurrentTime);
+    }
 }

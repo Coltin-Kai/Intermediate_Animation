@@ -154,6 +154,10 @@ int& Model::getBoneCount() {
     return m_BoneCounter;
 }
 
+std::vector<Mesh>& Model::getMeshes() {
+    return meshes;
+}
+
 void Model::setVertexBoneDataToDefault(Vertex& vertex) { //Set the two member arrays of vertex with default values
     for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
         vertex.m_BoneIDs[i] = -1;

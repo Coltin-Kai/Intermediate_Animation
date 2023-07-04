@@ -20,6 +20,7 @@ public:
 	void Draw(Shader& shader);
 	std::unordered_map<std::string, BoneInfo>& getBoneInfoMap();
 	int& getBoneCount();
+	std::vector<Mesh>& getMeshes();
 private:
 	std::vector<Mesh> meshes;
 	std::vector<Texture> textures_loaded;

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "Model.h"
 #include "Bone.h"
+#include "MorphAnim.h"
 
 struct AssimpNodeData { //Animation data sructure isolated from Assimp that mimics its aiNode class.
 	glm::mat4 transformation;
@@ -20,6 +21,7 @@ public:
 	Animation(std::string animationPath, Model* model);
 	~Animation();
 	Bone* findBone(const std::string& name);
+	std::vector<MorphAnim>& getMorphAnims();
 	inline float getTicksPerSecond() {
 		return m_TicksPerSecond;
 	}
@@ -39,6 +41,7 @@ private:
 	float m_Duraction; //How long the animation is
 	int m_TicksPerSecond; //The animation speed
 	std::vector<Bone> m_Bones; //List of every bone
+	std::vector<MorphAnim> m_MorphAnims; //List of every MorphAnim
 	AssimpNodeData m_RootNode; //The root node of the heirarchical structure of bones
 	std::unordered_map<std::string, BoneInfo> m_BoneInfoMap;
 	void readMissingBones(const aiAnimation* animation, Model& model);

@@ -1,5 +1,7 @@
 #include "Mesh.h"
 
+const unsigned int MAX_SHAPES = 50;
+
 Mesh::Mesh(std::string name, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, std::vector<Shape> shapes) : name(name), vertices(vertices), indices(indices), textures(textures), shapes(shapes) {
 	setupMesh();
 }
@@ -33,6 +35,15 @@ void Mesh::Draw(Shader& shader) {
 	glBindVertexArray(0);
 }
 
+void Mesh::updateMorphWeights(std::vector<float> newWeights) {
+	for (int i = newWeights.size(); i < MAX_SHAPES; i++) {
+		newWeights.push_back(-1.0f); //Filling up empty space;
+	}
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO_shapes);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 4, 4 * newWeights.size(), newWeights.data());
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+}
+
 void Mesh::setupMesh() { //Simply set up the associated Vertex Arrays and Buffers of the Mesh
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -64,7 +75,6 @@ void Mesh::setupMesh() { //Simply set up the associated Vertex Arrays and Buffer
 	float weights[MAX_SHAPES] 4 | 4 | 4
 	vec4 positions[][MAX_SHAPES] 16 | 4 + 4*weghts.length | 4 + 4*weights.length and whatever makes it to multiple of 16
 	*/
-	const unsigned int MAX_SHAPES = 50;
 	unsigned int numShapes = shapes.size();
 	unsigned int delta_16 = (4 + (4 * MAX_SHAPES)) % 16;
 	unsigned int positions_alligned_offset = (delta_16 == 0) ? (4 + (4 * MAX_SHAPES)) : (4 + (4 * MAX_SHAPES)) + (16 - delta_16);

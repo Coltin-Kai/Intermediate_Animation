@@ -8,19 +8,14 @@ Animation::Animation(std::string animationPath, Model* model) { //Takes animatio
     }
     assert(scene && scene->mRootNode);
     aiAnimation* animation = scene->mAnimations[0]; //Note that it only takes in one animation from the file (the first one present in the list of animations).
-
-    std::cout << "Morph Mesh: " << animation->mMorphMeshChannels[0]->mName.C_Str() << std::endl;
-
-    std::cout << "Weights of Joy: " << std::endl;
-    
-    for (int i = 0; i < animation->mMorphMeshChannels[0]->mNumKeys; i++) {
-        std::cout << +animation->mMorphMeshChannels[0]->mKeys[i].mWeights[2] << std::endl;
-    }
-
     m_Duraction = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;
     readHeirarchyData(m_RootNode, scene->mRootNode);
     readMissingBones(animation, *model);
+    m_MorphAnims.reserve(animation->mNumMorphMeshChannels);
+    for (int i = 0; i < animation->mNumMorphMeshChannels; i++) {
+        m_MorphAnims.push_back(MorphAnim(animation->mMorphMeshChannels[i], model));
+    }
 }
 
 Animation::~Animation() {
@@ -34,6 +29,10 @@ Bone* Animation::findBone(const std::string& name) { //Finds bone with specified
        return nullptr;
    else
        return &(*iter);
+}
+
+std::vector<MorphAnim>& Animation::getMorphAnims() {
+    return m_MorphAnims;
 }
 
 void Animation::readMissingBones(const aiAnimation* animation, Model& model) { //Used just in case there are missing bones in the model file that are found in the animation file. Adds these missing bones to our model BoneInfoMap container and adjust other variables

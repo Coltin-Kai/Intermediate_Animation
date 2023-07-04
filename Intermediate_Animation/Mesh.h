@@ -38,6 +38,7 @@ public:
 
 	Mesh(std::string name, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, std::vector<Shape> shapes);
 	void Draw(Shader& shader);
+	void updateMorphWeights(std::vector<float> newWeights);
 private:
 	unsigned int VAO, VBO, EBO, SSBO_shapes;
 	void setupMesh();
