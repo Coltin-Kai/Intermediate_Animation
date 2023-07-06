@@ -36,10 +36,18 @@ std::vector<float> MorphAnim::interpolateWeights(float animationTime) {
 	std::vector<float> weights;
 	weights.reserve(morph_keys[0].weights.size());
 	int p0Index = getMorphKeyIndex(animationTime);
-	int p1Index = p0Index + 1;
-	float factor = getScaleFactor(morph_keys[p0Index].timeStamp, morph_keys[p1Index].timeStamp, animationTime);
-	for (int i = 0; i < morph_keys[0].weights.size(); i++) {
-		weights.push_back(glm::mix(morph_keys[p0Index].weights[i], morph_keys[p1Index].weights[i], factor));
+	assert(p0Index != -1);
+	if (p0Index != morph_keys.size() - 1) {
+		int p1Index = p0Index + 1;
+		float factor = getScaleFactor(morph_keys[p0Index].timeStamp, morph_keys[p1Index].timeStamp, animationTime);
+		for (int i = 0; i < morph_keys[0].weights.size(); i++) {
+			weights.push_back(glm::mix(morph_keys[p0Index].weights[i], morph_keys[p1Index].weights[i], factor));
+		}
+	}
+	else {
+		for (int i = 0; i < morph_keys[0].weights.size(); i++) {
+			weights.push_back(morph_keys[p0Index].weights[i]);
+		}
 	}
 	return weights;
 }
@@ -48,6 +56,9 @@ int MorphAnim::getMorphKeyIndex(float animationTime) {
 	for (int index = 0; index < morph_keys.size() - 1; index++) {
 		if (animationTime < morph_keys[index + 1].timeStamp)
 			return index;
+		if (index == morph_keys.size() - 2) {
+			return morph_keys.size() - 1;
+		}
 	}
 	return -1;
 }

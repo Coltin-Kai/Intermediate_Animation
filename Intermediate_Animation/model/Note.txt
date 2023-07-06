@@ -1,5 +1,4 @@
-custom_kamome starts off at a neutral pose
+custom_kamome.glb is exported with "Group by NLA Tracks" off.
 
-custom_kamome2 starts with one shape initially full weighted
-
-Screw it. Use gltf format.
+custom_kamome2.glb is same as custom_kamome.glb, but adjusted to work with exportation with 
+"Group by NLA Tracks" on. Should represent the prefered way to export.
