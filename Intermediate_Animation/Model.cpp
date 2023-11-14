@@ -27,7 +27,6 @@ void Model::loadModel(std::string path) {
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene) {
-    //std::cout << node->mName.C_Str() << std::endl;
     for (unsigned int i = 0; i < node->mNumMeshes; i++) { //Get the index for each mesh from nodes and use the index to access actual mesh data from scene's meshes array
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(processMesh(mesh, scene));
@@ -113,9 +112,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) { //Transfers Assimp
 
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const aiScene* scene) {
     std::vector<Texture> textures;
-    
-    std::cout << "Material: " << mat->GetName().C_Str() << std::endl;
-
+   
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
         aiString str;
@@ -131,7 +128,6 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         if (!skip) {   // if texture hasn't been loaded already, load it
             Texture texture;
             if (str.C_Str()[0] == '*') {
-                std::cout << "Is Embedded" << std::endl;
                 texture.id = getEmbeddedTexture(str.C_Str(), scene);
             }
             else {
@@ -253,7 +249,6 @@ unsigned int getEmbeddedTexture(const char* path, const aiScene* scene) {
         //WIP when Neccesart
     }
     else { //Compressed
-        std::cout << "Embedded Texture is Compressed" << std::endl;
         int width, height, nrComponents;
         unsigned char* data = stbi_load_from_memory((const unsigned char*)embedded_Texture->pcData, embedded_Texture->mWidth, &width, &height, &nrComponents, 0);
         if (data) {

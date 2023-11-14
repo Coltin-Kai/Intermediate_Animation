@@ -13,7 +13,6 @@ Animation::Animation(std::string animationPath, Model* model, int index) { //Tak
     m_TicksPerSecond = animation->mTicksPerSecond;
     readHeirarchyData(m_RootNode, scene->mRootNode);
     readMissingBones(animation, *model);
-    std::cout << "Number of Morph Mesh Channels: " << +animation->mNumMorphMeshChannels << std::endl;
     m_MorphAnims.reserve(animation->mNumMorphMeshChannels);
     for (int i = 0; i < animation->mNumMorphMeshChannels; i++) {
         m_MorphAnims.push_back(MorphAnim(animation->mMorphMeshChannels[i], model));
