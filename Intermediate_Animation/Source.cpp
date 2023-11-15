@@ -1,11 +1,15 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <nfd/nfd.h>
 #include "Shader.h"
 #include "Model.h"
 #include "Animation.h"
 #include "Animator.h"
 #include "Camera.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 int screenWidth = 800;
 int screenHeight = 600;
@@ -48,7 +52,7 @@ int main() {
 
 	Shader shader(".\\shaders\\general.vert", ".\\shaders\\general.frag");
 	Model theModel(".\\model\\custom_kamome3.glb");
-	Animation theAnimation(".\\model\\custom_kamome3.glb", &theModel, 1); //Can do this as animation is also stored inthe dae file
+	Animation theAnimation(".\\model\\custom_kamome3.glb", &theModel, 0); //Can do this as animation is also stored inthe dae file
 	Animator animator(&theAnimation);
 
 	shader.use();
