@@ -17,6 +17,7 @@ int screenHeight = 600;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 static Camera camera;
 static float lastX = screenWidth / 2.0f; //Starts the x and y position of mouse at middle of screen
@@ -24,6 +25,10 @@ static float lastY = screenHeight / 2.0f;
 static bool firstMouse = true;
 static float deltaTime = 0.0f; //Time between current and last frame
 static float lastFrame = 0.0f;
+
+//IMGUI Related Variables
+static bool enable_Mouse_Cursor = false; //Specifies whether mouse cursor should be usalbe (for GUI)
+static bool correct_input_mode_set = true;
 
 int main() {
 	glfwInit();
@@ -44,7 +49,13 @@ int main() {
 	glViewport(0, 0, screenWidth, screenHeight);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetKeyCallback(window, key_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//IMGUI Setup
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init();
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -55,6 +66,8 @@ int main() {
 	Animation theAnimation(".\\model\\custom_kamome3.glb", &theModel, 0); //Can do this as animation is also stored inthe dae file
 	Animator animator(&theAnimation);
 
+	nfdchar_t* model_path = NULL;
+
 	shader.use();
 	while (!glfwWindowShouldClose(window)) {
 		float currentFrame = static_cast<float>(glfwGetTime());
@@ -62,6 +75,31 @@ int main() {
 		lastFrame = currentFrame;
 
 		processInput(window);
+		glfwPollEvents();
+
+		//IMGUI
+		if (!correct_input_mode_set) {
+			if (enable_Mouse_Cursor) {
+				glfwSetCursorPosCallback(window, NULL);
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			}
+			else {
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				glfwSetCursorPosCallback(window, mouse_callback);
+			}
+			correct_input_mode_set = true;
+		}
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::Begin("Animation Menu");
+		if (ImGui::Button("Load Model")) {
+			nfdresult_t result = NFD_OpenDialog("glb", NULL, &model_path);
+		}
+		ImGui::SetItemTooltip("Load a 3D Model by Selecting it's File");
+		ImGui::End();
+
 		animator.updateAnimation(deltaTime);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -78,10 +116,14 @@ int main() {
 		shader.setMatrix4Float("model", model);
 		theModel.Draw(shader);
 
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+		glfwSwapBuffers(window);
+	}
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 	return 0;
 }
 
@@ -121,4 +163,11 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 	lastY = ypos;
 
 	camera.processMouseMovement(xoffset, yoffset);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+		enable_Mouse_Cursor = !enable_Mouse_Cursor;
+		correct_input_mode_set = false;
+	}
 }
