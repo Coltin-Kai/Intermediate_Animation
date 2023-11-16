@@ -56,7 +56,6 @@ int main() {
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
-
 	glEnable(GL_DEPTH_TEST);
 
 	//For Alpha Testing. Maybe look into alhpa test and/or hybrid strat
@@ -80,12 +79,10 @@ int main() {
 		//IMGUI
 		if (!correct_input_mode_set) {
 			if (enable_Mouse_Cursor) {
-				glfwSetCursorPosCallback(window, NULL);
 				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 			else {
 				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-				glfwSetCursorPosCallback(window, mouse_callback);
 			}
 			correct_input_mode_set = true;
 		}
@@ -96,6 +93,11 @@ int main() {
 		ImGui::Begin("Animation Menu");
 		if (ImGui::Button("Load Model")) {
 			nfdresult_t result = NFD_OpenDialog("glb", NULL, &model_path);
+			if (result == NFD_OKAY) {
+				theModel = Model(model_path);
+				theAnimation = Animation(model_path, &theModel, 0);
+				animator = Animator(&theAnimation);
+			}
 		}
 		ImGui::SetItemTooltip("Load a 3D Model by Selecting it's File");
 		ImGui::End();
@@ -150,19 +152,28 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 	float xpos = static_cast<float>(xposIn);
 	float ypos = static_cast<float>(yposIn);
 
-	if (firstMouse) {
+	ImGuiIO& io = ImGui::GetIO();
+	if (xpos < 0 || xpos > screenWidth || ypos < 0 || ypos > screenHeight)
+		io.AddMousePosEvent(-FLT_MAX, -FLT_MAX); //Tells Imgui that Mouse is offscreen to prevet bugging
+	else
+		io.AddMousePosEvent(xpos, ypos);
+	io.WantCaptureMouse = enable_Mouse_Cursor;
+
+	if (!io.WantCaptureMouse) {
+		if (firstMouse) {
+			lastX = xpos;
+			lastY = ypos;
+			firstMouse = false;
+		}
+
+		float xoffset = xpos - lastX;
+		float yoffset = lastY - ypos; //Reversed since y-coords go from bot to top
+
 		lastX = xpos;
 		lastY = ypos;
-		firstMouse = false;
+
+		camera.processMouseMovement(xoffset, yoffset);
 	}
-
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; //Reversed since y-coords go from bot to top
-
-	lastX = xpos;
-	lastY = ypos;
-
-	camera.processMouseMovement(xoffset, yoffset);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
