@@ -29,6 +29,9 @@ static float lastFrame = 0.0f;
 //IMGUI Related Variables
 static bool enable_Mouse_Cursor = false; //Specifies whether mouse cursor should be usalbe (for GUI)
 static bool correct_input_mode_set = true;
+static bool first_mouse_callback = false; //Used to either save original mouse coords when entering cursor mode. Or loading saved mouse coords when camera mode.
+static float original_xpos_cursor_mode = 0.0f;
+static float original_ypos_cursor_mode = 0.0f;
 
 int main() {
 	glfwInit();
@@ -58,11 +61,13 @@ int main() {
 	ImGui_ImplOpenGL3_Init();
 	glEnable(GL_DEPTH_TEST);
 
-	//For Alpha Testing. Maybe look into alhpa test and/or hybrid strat
+	int num_Animations_current = -1;
+	int current_Animation = 0;
+	int new_Animation = 0;
 
 	Shader shader(".\\shaders\\general.vert", ".\\shaders\\general.frag");
-	Model theModel(".\\model\\custom_kamome3.glb");
-	Animation theAnimation(".\\model\\custom_kamome3.glb", &theModel, 0); //Can do this as animation is also stored inthe dae file
+	Model theModel(".\\model\\cube.glb");
+	Animation theAnimation(".\\model\\cube.glb", &theModel, num_Animations_current, 0); //Can do this as animation is also stored inthe dae file
 	Animator animator(&theAnimation);
 
 	nfdchar_t* model_path = NULL;
@@ -85,6 +90,7 @@ int main() {
 				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			}
 			correct_input_mode_set = true;
+			first_mouse_callback = true;
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -95,12 +101,28 @@ int main() {
 			nfdresult_t result = NFD_OpenDialog("glb", NULL, &model_path);
 			if (result == NFD_OKAY) {
 				theModel = Model(model_path);
-				theAnimation = Animation(model_path, &theModel, 0);
+				theAnimation = Animation(model_path, &theModel, num_Animations_current, 0);
+				current_Animation = 0;
+				new_Animation = 0;
 				animator = Animator(&theAnimation);
 			}
 		}
-		ImGui::SetItemTooltip("Load a 3D Model by Selecting it's File");
+		ImGui::SetItemTooltip("Load a 3D Model and it's Animation by Selecting it's File");
+		for (int i = 0; i < num_Animations_current; i++) {
+			std::string label = "Animation ";
+			label += std::to_string(i);
+			ImGui::RadioButton(label.c_str(), &new_Animation, i);
+		}
 		ImGui::End();
+		if (current_Animation != new_Animation) {
+			current_Animation = new_Animation;
+			if (model_path == NULL) //If didn't load any other model
+				theAnimation = Animation(".\\model\\cube.glb", &theModel, num_Animations_current, current_Animation);
+			
+			else
+				theAnimation = Animation(model_path, &theModel, num_Animations_current, current_Animation);
+			animator = Animator(&theAnimation);
+		}
 
 		animator.updateAnimation(deltaTime);
 
@@ -160,6 +182,13 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 	io.WantCaptureMouse = enable_Mouse_Cursor;
 
 	if (!io.WantCaptureMouse) {
+		if (first_mouse_callback) {
+			xpos = original_xpos_cursor_mode;
+			ypos = original_ypos_cursor_mode;
+			io.AddMousePosEvent(xpos, ypos);
+			glfwSetCursorPos(window, xpos, ypos);
+			first_mouse_callback = false;
+		}
 		if (firstMouse) {
 			lastX = xpos;
 			lastY = ypos;
@@ -173,6 +202,13 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 		lastY = ypos;
 
 		camera.processMouseMovement(xoffset, yoffset);
+	}
+	else {
+		if (first_mouse_callback) {
+			original_xpos_cursor_mode = lastX;
+			original_ypos_cursor_mode = lastY;
+			first_mouse_callback = false;
+		}
 	}
 }
 

@@ -16,11 +16,17 @@ struct materials {
 };
 
 uniform materials material;
+uniform bool no_textures;
 
 void main()
 {    
-    
-    vec4 color = texture(material.texture_diffuse1, TexCoords);
+    vec4 color;
+    if (no_textures == true) {
+        color = vec4(1.0f, 1.0f, 1.0, 1.0f);
+    }
+    else {
+        color = texture(material.texture_diffuse1, TexCoords);
+    }
     if (color.a < 0.1) //Kind of Works
         discard;
     FragColor = color;

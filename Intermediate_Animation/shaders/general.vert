@@ -3,7 +3,7 @@
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 norm;
 layout(location = 2) in vec2 tex;
-layout(location = 3) in ivec4 boneIds;
+layout(location = 3) in ivec4 boneIds; 
 layout(location = 4) in vec4 bone_weights;
 
 uniform mat4 projection;
@@ -46,7 +46,10 @@ void main()
         vec4 localPosition = finalBonesMatrices[boneIds[i]] * vec4(morph_position, 1.0f);
         totalPosition += localPosition * bone_weights[i];
     }
-	//totalPosition at this point should have the final result of all transformations caused by the bones incluencing the vertice
+    if (boneIds[0] == -1 && boneIds[1] == -1 && boneIds[2] == -1 && boneIds[3] == -1) { //If no bones at all
+        totalPosition = vec4(morph_position, 1.0f);
+    }
+	//totalPosition at this point should have the final result of all transformations caused by the bones incluencing the vertice (or just the regular pos + shape morphs if no bones)
     mat4 viewModel = view * model;
     gl_Position = projection * viewModel * totalPosition;
     TexCoords = tex;

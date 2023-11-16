@@ -25,7 +25,12 @@ void Mesh::Draw(Shader& shader) {
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 	glActiveTexture(GL_TEXTURE0);
-	
+	if (textures.size() == 0) { //If Object has no Textures, Inform Shader about it
+		shader.setBool("no_textures", true);
+	}
+	else
+		shader.setBool("no_textures", false);
+
 	//Morph - May be wrong way to bind
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, SSBO_shapes);
 
@@ -78,7 +83,13 @@ void Mesh::setupMesh() { //Simply set up the associated Vertex Arrays and Buffer
 	unsigned int numShapes = shapes.size();
 	unsigned int delta_16 = (4 + (4 * MAX_SHAPES)) % 16;
 	unsigned int positions_alligned_offset = (delta_16 == 0) ? (4 + (4 * MAX_SHAPES)) : (4 + (4 * MAX_SHAPES)) + (16 - delta_16);
-	unsigned int ssb_size = positions_alligned_offset + (16 * MAX_SHAPES * shapes[0].positions.size());
+	unsigned int ssb_size;
+	if (numShapes == 0) {
+		ssb_size = positions_alligned_offset + (16 * MAX_SHAPES);
+	}
+	else {
+		ssb_size = positions_alligned_offset + (16 * MAX_SHAPES * shapes[0].positions.size());
+	}
 	assert(numShapes < MAX_SHAPES);
 	std::vector<float> weights_temp;
 	weights_temp.reserve(MAX_SHAPES);
@@ -88,8 +99,8 @@ void Mesh::setupMesh() { //Simply set up the associated Vertex Arrays and Buffer
 		else
 			weights_temp.push_back(-1.0f); //Leftover space filled with empty data
 	}
-	auto positions_temp = new glm::vec4[shapes[0].positions.size()][MAX_SHAPES]; //Represents a contiguous memory of positions, where a row represents the same vertex in each shape, and column are all the different vertices.
-	for (int i = 0; i < shapes[0].positions.size(); i++) {
+	auto positions_temp = (numShapes == 0) ? new glm::vec4[0][MAX_SHAPES] : new glm::vec4[shapes[0].positions.size()][MAX_SHAPES]; //Represents a contiguous memory of positions, where a row represents the same vertex in each shape, and column are all the different vertices.
+	for (int i = 0; numShapes != 0 && i < shapes[0].positions.size(); i++) {
 		for (int j = 0; j < MAX_SHAPES; j++) {
 			if (j < numShapes)
 				positions_temp[i][j] = shapes[j].positions[i];
@@ -102,7 +113,10 @@ void Mesh::setupMesh() { //Simply set up the associated Vertex Arrays and Buffer
 	glBufferData(GL_SHADER_STORAGE_BUFFER, ssb_size, NULL, GL_DYNAMIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 4, &numShapes);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 4, 4 * weights_temp.size(), weights_temp.data());
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, positions_alligned_offset, 16 * shapes[0].positions.size() * MAX_SHAPES, positions_temp);
+	if (numShapes == 0)
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, positions_alligned_offset, 16 * MAX_SHAPES, positions_temp);
+	else
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, positions_alligned_offset, 16 * shapes[0].positions.size() * MAX_SHAPES, positions_temp);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 	delete[] positions_temp;

@@ -1,14 +1,14 @@
 #include "Animation.h"
 
-Animation::Animation(std::string animationPath, Model* model, int index) { //Takes animation file path and the Model used for the animation.
+Animation::Animation(std::string animationPath, Model* model, int& num_Animations, int index) { //Takes animation file path and the Model used for the animation.
     Assimp::Importer importer; //Uses Importer to read the animation file and contain its contents in a Scene object
     const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
     if (scene == NULL) {
         std::cout << "ANIMATION::Scene points to nothing" << std::endl;
     }
     assert(scene && scene->mRootNode);
-    std::cout << "Number of Animations: " << +scene->mNumAnimations << std::endl;
     aiAnimation* animation = scene->mAnimations[index]; //Note that it only takes in one animation from the file (the first one present in the list of animations).
+    num_Animations = scene->mNumAnimations;
     m_Duraction = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;
     readHeirarchyData(m_RootNode, scene->mRootNode);
