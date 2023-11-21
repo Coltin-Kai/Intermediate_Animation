@@ -17,8 +17,9 @@ struct AssimpNodeData { //Animation data sructure isolated from Assimp that mimi
 
 class Animation {
 public:
+	std::vector<std::string> animationNames; //Name of every animation contained in the file. Not exactly related to just the animation represented by the object.
 	Animation() = default;
-	Animation(std::string animationPath, Model* model, int& num_Animations, int index = 0);
+	Animation(std::string animationPath, Model* model, int index = 0);
 	~Animation();
 	Bone* findBone(const std::string& name);
 	std::vector<MorphAnim>& getMorphAnims();

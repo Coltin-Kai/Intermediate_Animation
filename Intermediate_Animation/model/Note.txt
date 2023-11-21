@@ -1,4 +1,0 @@
-custom_kamome.glb is exported with "Group by NLA Tracks" off.
-
-custom_kamome2.glb is same as custom_kamome.glb, but adjusted to work with exportation with 
-"Group by NLA Tracks" on. Should represent the prefered way to export.

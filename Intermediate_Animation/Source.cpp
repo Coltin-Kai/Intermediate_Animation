@@ -35,6 +35,7 @@ static float original_xpos_cursor_mode = 0.0f;
 static float original_ypos_cursor_mode = 0.0f;
 static float scaleFactor = 1.0f;
 static bool animation_paused = false;
+static std::vector<std::string> animationNames;
 
 int main() {
 	glfwInit();
@@ -64,13 +65,13 @@ int main() {
 	ImGui_ImplOpenGL3_Init();
 	glEnable(GL_DEPTH_TEST);
 
-	int num_Animations_current = -1;
 	int current_Animation = 0;
 	int new_Animation = 0;
 
 	Shader shader(".\\shaders\\general.vert", ".\\shaders\\general.frag");
 	Model theModel(".\\model\\cube.glb");
-	Animation theAnimation(".\\model\\cube.glb", &theModel, num_Animations_current, 0); //Can do this as animation is also stored inthe dae file
+	Animation theAnimation(".\\model\\cube.glb", &theModel, 0); //Can do this as animation is also stored inthe dae file
+	animationNames = theAnimation.animationNames;
 	Animator animator(&theAnimation);
 
 	nfdchar_t* model_path = NULL;
@@ -105,7 +106,8 @@ int main() {
 			nfdresult_t result = NFD_OpenDialog("glb", NULL, &model_path);
 			if (result == NFD_OKAY) {
 				theModel = Model(model_path);
-				theAnimation = Animation(model_path, &theModel, num_Animations_current, 0);
+				theAnimation = Animation(model_path, &theModel, 0);
+				animationNames = theAnimation.animationNames;
 				current_Animation = 0;
 				new_Animation = 0;
 				animator = Animator(&theAnimation);
@@ -125,21 +127,20 @@ int main() {
 		if (animation_paused && ImGui::Button("UnPause Animation")) {
 			animation_paused = false;
 		}
-
-		for (int i = 0; i < num_Animations_current; i++) {
-			std::string label = "Animation ";
-			label += std::to_string(i);
-			ImGui::RadioButton(label.c_str(), &new_Animation, i);
+		ImGui::Text("Animations");
+		for (int i = 0; i < animationNames.size(); i++) {
+			ImGui::RadioButton(animationNames[i].c_str(), &new_Animation, i);
 		}
 		ImGui::End();
 
 		if (current_Animation != new_Animation) {
 			current_Animation = new_Animation;
 			if (model_path == NULL) //If didn't load any other model, reuse defalt path
-				theAnimation = Animation(".\\model\\cube.glb", &theModel, num_Animations_current, current_Animation);
+				theAnimation = Animation(".\\model\\cube.glb", &theModel, current_Animation);
 			
 			else
-				theAnimation = Animation(model_path, &theModel, num_Animations_current, current_Animation);
+				theAnimation = Animation(model_path, &theModel, current_Animation);
+			animationNames = theAnimation.animationNames;
 			animator = Animator(&theAnimation);
 			if (animation_paused) {
 				animator.updateAnimation(deltaTime); //If Animation is paused, we call updateAnimation once in order to update to the new animation without unpausing.
@@ -243,7 +244,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 	if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS) {
 		if (!cameraSpedUp) {
-			camera.movementSpeed = 20.0f; //10x speed
+			camera.movementSpeed = 20.0f; //8x speed
 			cameraSpedUp = true;
 		}
 		else {
