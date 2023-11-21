@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-const unsigned int MAX_SHAPES = 50;
+const unsigned int MAX_SHAPES = 200;
 
 Mesh::Mesh(std::string name, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, std::vector<Shape> shapes) : name(name), vertices(vertices), indices(indices), textures(textures), shapes(shapes) {
 	setupMesh();

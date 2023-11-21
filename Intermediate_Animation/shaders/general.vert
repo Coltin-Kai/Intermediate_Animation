@@ -14,7 +14,7 @@ const int MAX_BONES = 200; //Max number of bones allowed total
 const int MAX_BONE_INFLUENCE = 4; //Max number of influences the vertice can experience
 uniform mat4 finalBonesMatrices[MAX_BONES];
 
-const int MAX_SHAPES = 50;
+const int MAX_SHAPES = 200; //Note: To Change, Need to also change its variable in Mesh.cpp
 layout(std430, binding = 0) buffer MorphBuffer {
     int numShapes;
     float weights[MAX_SHAPES];

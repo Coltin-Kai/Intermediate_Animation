@@ -25,6 +25,7 @@ static float lastY = screenHeight / 2.0f;
 static bool firstMouse = true;
 static float deltaTime = 0.0f; //Time between current and last frame
 static float lastFrame = 0.0f;
+static bool cameraSpedUp = false;
 
 //IMGUI Related Variables
 static bool enable_Mouse_Cursor = false; //Specifies whether mouse cursor should be usalbe (for GUI)
@@ -32,6 +33,7 @@ static bool correct_input_mode_set = true;
 static bool first_mouse_callback = false; //Used to either save original mouse coords when entering cursor mode. Or loading saved mouse coords when camera mode.
 static float original_xpos_cursor_mode = 0.0f;
 static float original_ypos_cursor_mode = 0.0f;
+static float scaleFactor = 1.0f;
 
 int main() {
 	glfwInit();
@@ -96,6 +98,7 @@ int main() {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		//ImGui::ShowDemoWindow();
 		ImGui::Begin("Animation Menu");
 		if (ImGui::Button("Load Model")) {
 			nfdresult_t result = NFD_OpenDialog("glb", NULL, &model_path);
@@ -105,9 +108,15 @@ int main() {
 				current_Animation = 0;
 				new_Animation = 0;
 				animator = Animator(&theAnimation);
+				scaleFactor = 1.0f; //Reset Scale for new model
 			}
 		}
 		ImGui::SetItemTooltip("Load a 3D Model and it's Animation by Selecting it's File");
+		if (ImGui::InputFloat("Scale", &scaleFactor, 0.1f, 1.0f, "%.3f")) {
+			if (scaleFactor < 0.1f) { //Clamp
+				scaleFactor = 0.1f;
+			}
+		}
 		for (int i = 0; i < num_Animations_current; i++) {
 			std::string label = "Animation ";
 			label += std::to_string(i);
@@ -129,7 +138,7 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 500.0f);
 		glm::mat4 view = camera.getViewMatrix();
 		shader.setMatrix4Float("projection", projection);
 		shader.setMatrix4Float("view", view);
@@ -137,6 +146,7 @@ int main() {
 		for (int i = 0; i < transforms.size(); i++)
 			shader.setMatrix4Float("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
 		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(scaleFactor));
 		shader.setMatrix4Float("model", model);
 		theModel.Draw(shader);
 
@@ -216,5 +226,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
 		enable_Mouse_Cursor = !enable_Mouse_Cursor;
 		correct_input_mode_set = false;
+	}
+	if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS) {
+		if (!cameraSpedUp) {
+			camera.movementSpeed = 50.0f; //25x speed
+			cameraSpedUp = true;
+		}
+		else {
+			camera.movementSpeed = 2.5f;
+			cameraSpedUp = false;
+		}
 	}
 }
