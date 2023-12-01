@@ -12,6 +12,8 @@ A project to learn the implementation of 3D bone animation. This application is 
 # Controls
 Movement - WASD
 
+Toggle Movement Speed - Left Shift
+
 Cursor Mode - Z
 
 # Examples
