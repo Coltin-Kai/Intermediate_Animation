@@ -23,10 +23,6 @@ https://github.com/Coltin-Kai/Intermediate_Animation/assets/89913210/104931b3-73
 
 
 
-https://github.com/Coltin-Kai/Intermediate_Animation/assets/89913210/9e8758c6-d1ea-41e5-b7a6-f2d0481c3ab8
-
-
-
 https://github.com/Coltin-Kai/Intermediate_Animation/assets/89913210/a9fb1d13-d358-450e-88a4-be0df088bd19
 
 
